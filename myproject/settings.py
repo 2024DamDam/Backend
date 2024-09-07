@@ -47,6 +47,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # 미들웨어에 추가
+
 ]
 
 ROOT_URLCONF = 'myproject.urls'
@@ -129,6 +131,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
 INSTALLED_APPS = [
+    'corsheaders',
     'django.contrib.admin',  
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -136,4 +139,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'myapp'
+]
+CORS_ORIGIN_ALLOW_ALL = True
+# CSRF 관련 설정
+CSRF_USE_SESSIONS = False  # CSRF 토큰을 세션이 아닌 쿠키에 저장
+CSRF_COOKIE_NAME = "csrftoken"  # 쿠키에 저장되는 CSRF 토큰의 이름
+CSRF_TRUSTED_ORIGINS = ['http://localhost:3000']  # React 개발 서버 도메인 추가
+CORS_ALLOW_CREDENTIALS = True
+CORS_ORIGIN_WHITELIST = [
+    'http://localhost:3000',  # React 개발 서버 도메인 추가
 ]

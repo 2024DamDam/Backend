@@ -13,6 +13,7 @@ from elevenlabs.client import ElevenLabs, VoiceSettings
 import subprocess
 import logging
 import base64
+import json 
 from django.views.decorators.http import require_http_methods
 
 logging.basicConfig(level=logging.INFO)
@@ -179,48 +180,43 @@ def handle_uploaded_file(f):
 @csrf_exempt
 def query_view(request):
     if request.method == 'POST':
-        # 초기화 세션 확인
-        if 'past_messages' not in request.session:
-            request.session['past_messages'] = []
+        try:
+            # JSON 데이터 파싱
+            body_unicode = request.body.decode('utf-8')
+            body_data = json.loads(body_unicode)
 
-        if 'file' in request.FILES:
-            file_content = handle_uploaded_file(request.FILES['file'])
-            # 파일 내용을 ChatGPT에게 시스템 메시지로 전달하여 세션을 초기화
-            system_message = (
-                "You are a helpful assistant. The user has provided a conversation file. "
-                "Use this information to help the user with any questions or further discussion. "
-                f"The conversation content is as follows:\n\n{file_content}\n\n"
-                "When answering, please consider this context and provide clear, concise, and helpful responses."
-            )
-            request.session['past_messages'].append({"role": "system", "content": system_message})
+            prompt = body_data.get('prompt', '')
 
-            # 파일을 읽은 후 사용자에게 자동으로 메시지 전송
-            initial_response = "보내주신 대화내용을 모두 읽었어요. 이제 대화를 시작할까요?"
-            request.session['past_messages'].append({"role": "assistant", "content": initial_response})
+            if not prompt:
+                return JsonResponse({'error': 'No prompt provided'}, status=400)
 
-            return JsonResponse({'response': initial_response})
+            # 초기화 세션 확인
+            if 'past_messages' not in request.session:
+                request.session['past_messages'] = []
 
-        prompt = request.POST.get('prompt', '')
-        
-        if prompt:
             # 사용자의 질문을 추가
             request.session['past_messages'].append({"role": "user", "content": prompt})
-        
+
             # ChatGPT API 호출
             response = openai.ChatCompletion.create(
                 model="gpt-4",
                 messages=request.session['past_messages'],
                 max_tokens=1024
             )
-        
+
             answer = response['choices'][0]['message']['content']
+
             # 응답을 저장
             request.session['past_messages'].append({"role": "assistant", "content": answer})
             request.session.modified = True
 
             return JsonResponse({'response': answer})
 
-    return render(request, 'chat.html')
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+    # POST 요청이 아닐 경우
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
 
 
 
