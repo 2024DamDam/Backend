@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Choose Channel 1</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f1f1f1;
+    }
+    .image-container {
+      margin-bottom: 20px;
+    }
+    .image-container img {
+      width: 300px;
+      height: 300px;
+    }
+    .text-container {
+      margin-bottom: 20px;
+    }
+    .text-container .text-box {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #AED5FC;
+      color: white;
+      border-radius: 5px;
+      margin-right: 10px;
+    }
+    .button-container {
+      margin-top: 20px;
+    }
+    .button-container .button {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #0381F9;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="image-container">
+    <img src="https://images.pexels.com/photos/24427993/pexels-photo-24427993.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Image">
+  </div>
+  <div class="text-container">
+    <div class="text-box">#가수 #편안한</div>
+  </div>
+  <div class="text-container">
+    <div class="text-box">안녕하세요. 가수 000입니다~!</div>
+  </div>
+  <div class="button-container">
+    <a href="{% url 'chat' %}"><button>select</button></a>
+</div>
+</body>
+</html>

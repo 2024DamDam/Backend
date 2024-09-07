@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Make CH1</title>
+  <style>
+    .photo-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .photo-preview-container {
+      width: 300px;
+      height: 200px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    #photo-preview {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    .photo-input-container {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #AED5FC;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+    }
+
+    .photo-input-label {
+      margin-right: 10px;
+      font-weight: bold;
+    }
+
+    #photo-input {
+      cursor: pointer;  
+    }
+
+    .input-container {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .input-box {
+      background-color: #AED5FC;
+      padding: 10px;
+      border-radius: 5px;
+      margin-right: 10px;
+    }
+    .upload-container {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .upload-box {
+      background-color: #AED5FC;
+      padding: 10px;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+    }
+    .start-button {
+      display: block;
+      margin: 20px auto 0;
+      background-color: #0381F9;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+    <div class="photo-container">
+        <div class="photo-preview-container">
+          <img id="photo-preview" src="#" alt="Photo" style="display: none;">
+        </div>
+        <div class="photo-input-container">
+          <label for="photo-input" class="photo-input-label">사진 선택</label>
+          <input type="file" id="photo-input" accept="image/*" onchange="showPhoto(this)">
+        </div>
+    </div>
+           
+      
+      <script>
+        function showPhoto(input) {
+          var photoPreview = document.getElementById('photo-preview');
+          if (input.files && input.files[0]) {
+            photoPreview.src = URL.createObjectURL(input.files[0]);
+            photoPreview.style.display = 'block';
+          } else {
+            photoPreview.src = '#';
+            photoPreview.style.display = 'none';
+          }
+        }
+    </script>
+      </script>      
+  <div class="input-container">
+    <div class="input-box">이름</div>
+    <input type="text">
+  </div>
+  <div class="upload-container">
+    <div class="upload-box">대화 파일을 업로드 해주세요</div>
+    <input type="file">
+  </div>
+<!--  <div class="upload-container">
+    <div class="upload-box">음성 파일을 업로드 해주세요</div>
+    <input type="file">
+  </div>
+-->
+<button class="start-button" onclick="navigateToChat()">Next</button>
+<script>
+  // CSRF 토큰을 가져와서 전역 변수에 저장
+  var csrfToken = document.querySelector('[name="csrfmiddlewaretoken"]').value;
+
+  function navigateToChat() {
+  fetch("{% url 'choose_ch1' %}", {
+    method: "GET",
+    headers: {
+      "X-CSRFToken": "{{ csrf_token }}"
+    }
+  })
+  .then(response => {
+    if (response.ok) {
+      window.location.href = "{% url 'select_number_of_people' %}";
+    } else {
+      // 에러 처리
+    }
+  })
+  .catch(error => {
+    // 에러 처리
+  });
+}
+
+</script>
+</body>
+</html>

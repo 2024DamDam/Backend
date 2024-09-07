@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Upload and Separate</title>
+</head>
+<body>
+    <h1>목소리 분리하고 생성하기</h1>    
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">업로드하고 분리하기</button>
+        </form>
+
+</body>
+</html>

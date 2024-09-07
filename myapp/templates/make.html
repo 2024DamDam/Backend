@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Make</title>
+  <style>
+    .button-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 50px;
+    }
+    .button-item {
+      width: 200px;
+      height: 200px;
+      margin: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background-color: #f1f1f1;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    .button-item img {
+      width: 100px;
+      height: 100px;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <a href="{% url 'home' %}"><h1>Dam Dam</h1></a>
+  
+  <div>
+    <input type="text" id="searchInput" placeholder="검색어를 입력하세요">
+    <button id="searchButton">검색하기</button>
+  </div>
+  
+  <script>
+    const wordListElement = document.getElementById('wordList');
+    const showWordListButton = document.getElementById('showWordList');
+    const wordButtons = document.querySelectorAll('.word-button');
+
+    showWordListButton.addEventListener('click', () => {
+      if (wordListElement.style.display === 'none') {
+        wordListElement.style.display = 'block';
+      } else {
+        wordListElement.style.display = 'none';
+      }
+    });
+
+    wordButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        button.classList.toggle('selected');
+      });
+    });
+  </script>
+  <div class="button-container">
+    <a href="{% url 'choose_ch1' %}">
+      <div class="button-item">
+        <img src="https://images.pexels.com/photos/24427993/pexels-photo-24427993.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Image">
+        <span>#가수 #편안한</span>
+      </div>
+    </a>
+    <div class="button-item">
+      <img src="https://images.pexels.com/photos/24427993/pexels-photo-24427993.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Image">
+      <span>Button 2</span>
+    </div>
+    <a href="{% url 'make_ch1' %}">
+      <div class="button-item">
+      <img src="https://cdn.pixabay.com/photo/2017/11/10/05/24/add-2935429_1280.png" alt="Image">
+      </div>
+    </a>
+    <div class="button-item">
+      <img src="https://cdn.pixabay.com/photo/2017/11/10/05/24/add-2935429_1280.png" alt="Image">
+    </div>
+    <div class="button-item">
+      <img src="https://cdn.pixabay.com/photo/2017/11/10/05/24/add-2935429_1280.png" alt="Image">
+    </div>
+    <div class="button-item">
+      <img src="https://cdn.pixabay.com/photo/2017/11/10/05/24/add-2935429_1280.png" alt="Image">
+    </div>
+    <div class="button-item">
+      <img src="https://cdn.pixabay.com/photo/2017/11/10/05/24/add-2935429_1280.png" alt="Image">
+    </div>
+    <div class="button-item">
+      <img src="https://cdn.pixabay.com/photo/2017/11/10/05/24/add-2935429_1280.png" alt="Image">
+    </div>
+    <div class="button-item">
+        <img src="https://cdn.pixabay.com/photo/2017/11/10/05/24/add-2935429_1280.png" alt="Image">
+    </div>
+    <div class="button-item">
+        <img src="https://cdn.pixabay.com/photo/2017/11/10/05/24/add-2935429_1280.png" alt="Image">
+    </div>
+    <div class="button-item">
+        <img src="https://cdn.pixabay.com/photo/2017/11/10/05/24/add-2935429_1280.png" alt="Image">
+    </div>
+    <div class="button-item">
+        <img src="https://cdn.pixabay.com/photo/2017/11/10/05/24/add-2935429_1280.png" alt="Image">
+    </div>
+    <div class="button-item">
+      <img src="https://cdn.pixabay.com/photo/2017/11/10/05/24/add-2935429_1280.png" alt="Image">
+    </div>
+    <div class="button-item">
+        <img src="https://cdn.pixabay.com/photo/2017/11/10/05/24/add-2935429_1280.png" alt="Image">
+    </div>
+    <div class="button-item">
+        <img src="https://cdn.pixabay.com/photo/2017/11/10/05/24/add-2935429_1280.png" alt="Image">
+    </div>
+  </div>
+</body>
+</html>

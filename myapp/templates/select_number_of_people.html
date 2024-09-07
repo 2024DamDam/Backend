@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>인원 수 선택</title>
+</head>
+<body>
+    <h1>사람 인원 수를 선택하시오</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">다음</button>
+    </form>
+</body>
+</html>

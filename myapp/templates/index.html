@@ -1,0 +1,17 @@
+<!-- myapp/templates/myapp/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Generate Audio</title>
+</head>
+<body>
+    <h1>Text to Audio Converter</h1>
+    <form method="post">
+        {% csrf_token %}
+        <label for="text_to_convert">Enter text:</label>
+        <input type="text" id="text_to_convert" name="text_to_convert">
+        <button type="submit">Convert</button>
+    </form>
+</body>
+</html>

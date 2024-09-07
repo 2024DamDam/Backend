@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Choose</title>
+  <style>
+    .word-button {
+      width: 100px;
+      height: 50px;
+      margin: 10px;
+      background-color: #f1f1f1;
+      border: none;
+      cursor: pointer;
+    }
+    .selected {
+      background-color: #0381F9;
+      color: white;
+    }
+    .button-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 50px;
+    }
+    .button-item {
+      width: 200px;
+      height: 200px;
+      margin: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background-color: #f1f1f1;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    .button-item img {
+      width: 100px;
+      height: 100px;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <a href="{% url 'home' %}"><h1>Dam Dam</h1></a>
+  
+  <div>
+    <input type="text" id="searchInput" placeholder="검색어를 입력하세요">
+    <button id="searchButton">검색하기</button>
+    <button id="showWordList">#</button>
+  </div>
+  
+  <div id="wordList" style="display: none;">
+    <button class="word-button">다정한</button>
+    <button class="word-button">재미있는</button>
+    <button class="word-button">긍정적인</button>
+    <button class="word-button">열정적인</button>
+    <button class="word-button">신중한</button>
+    <button class="word-button">친화적인</button>
+    <button class="word-button">창의적인</button>
+    <button class="word-button">꼼꼼한</button>
+    <button class="word-button">이해심 깊은</button>
+    <button class="word-button">호기심 많은</button>
+    <button class="word-button">명랑한</button>
+    <button class="word-button">쾌활한</button>
+    <button class="word-button">활발한</button>
+    <button class="word-button">온화한</button>
+    <button class="word-button">친근한</button>
+    <button class="word-button">솔직한</button>
+  </div>
+  
+  <script>
+    const wordListElement = document.getElementById('wordList');
+    const showWordListButton = document.getElementById('showWordList');
+    const wordButtons = document.querySelectorAll('.word-button');
+
+    showWordListButton.addEventListener('click', () => {
+      if (wordListElement.style.display === 'none') {
+        wordListElement.style.display = 'block';
+      } else {
+        wordListElement.style.display = 'none';
+      }
+    });
+
+    wordButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        button.classList.toggle('selected');
+      });
+    });
+  </script>
+  <div class="button-container">
+    <a href="{% url 'choose_ch1' %}">
+      <div class="button-item">
+        <img src="https://images.pexels.com/photos/24427993/pexels-photo-24427993.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Image">
+        <span>#가수 #편안한</span>
+      </div>
+    </a>
+    <div class="button-item">
+      <img src="https://images.pexels.com/photos/24427993/pexels-photo-24427993.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Image">
+      <span>Button 2</span>
+    </div>
+    <div class="button-item">
+      <img src="https://images.pexels.com/photos/24427993/pexels-photo-24427993.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Image">
+      <span>Button 3</span>
+    </div>
+    <div class="button-item">
+      <img src="https://images.pexels.com/photos/24427993/pexels-photo-24427993.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Image">
+      <span>Button 4</span>
+    </div>
+    <div class="button-item">
+      <img src="https://images.pexels.com/photos/24427993/pexels-photo-24427993.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Image">
+      <span>Button 5</span>
+    </div>
+    <div class="button-item">
+      <img src="https://images.pexels.com/photos/24427993/pexels-photo-24427993.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Image">
+      <span>Button 6</span>
+    </div>
+    <div class="button-item">
+      <img src="https://images.pexels.com/photos/24427993/pexels-photo-24427993.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Image">
+      <span>Button 7</span>
+    </div>
+    <div class="button-item">
+      <img src="https://images.pexels.com/photos/24427993/pexels-photo-24427993.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Image">
+      <span>Button 8</span>
+    </div>
+    <div class="button-item">
+        <img src="https://images.pexels.com/photos/24427993/pexels-photo-24427993.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Image">
+        <span>Button 9</span>
+    </div>
+    <div class="button-item">
+        <img src="https://images.pexels.com/photos/24427993/pexels-photo-24427993.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Image">
+        <span>Button 10</span>
+    </div>
+    <div class="button-item">
+        <img src="https://images.pexels.com/photos/24427993/pexels-photo-24427993.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Image">
+        <span>Button 11</span>
+    </div>
+    <div class="button-item">
+        <img src="https://images.pexels.com/photos/24427993/pexels-photo-24427993.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Image">
+        <span>Button 12</span>
+    </div>
+    <div class="button-item">
+      <img src="https://images.pexels.com/photos/24427993/pexels-photo-24427993.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Image">
+        <span>Button 13</span>
+    </div>
+    <div class="button-item">
+        <img src="https://images.pexels.com/photos/24427993/pexels-photo-24427993.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Image">
+        <span>Button 14</span>
+    </div>
+    <div class="button-item">
+        <img src="https://images.pexels.com/photos/24427993/pexels-photo-24427993.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Image">
+        <span>Button 15</span>
+    </div>
+  </div>
+</body>
+</html>
