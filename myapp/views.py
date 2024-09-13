@@ -15,6 +15,8 @@ import logging
 import base64
 import json 
 from django.views.decorators.http import require_http_methods
+from django.urls import reverse
+from django.http import HttpResponse
 
 logging.basicConfig(level=logging.INFO)
 openai.api_key = 'sk-D22-NEc2cS09LI3f-qiYtTXkHvICwA4eZ9Jpl-eK1wT3BlbkFJaSUR8wTiTQGQG6eAM4A7lu_e3vTuun8sL-Zp6lDUMA'
@@ -37,104 +39,85 @@ def voice_separation(request):
     if request.method == 'POST':
         form = UploadForm(request.POST, request.FILES)
         if form.is_valid():
-            file = request.FILES['file']
-            fs = FileSystemStorage()
-            filename = fs.save(file.name, file)
-            file_path = fs.path(filename)
-
-            # spleeter를 사용하여 파일 분리
             try:
-                completed_process = subprocess.run(
-                    ['python', '-m', 'spleeter', 'separate', '-o', fs.location, file_path],
-                    check=True,
-                    text=True,
-                    stderr=subprocess.PIPE,
-                    stdout=subprocess.PIPE
-                )
-                print("분리 성공:", completed_process.stdout)
+                name = request.POST.get('name')  # 입력된 이름을 가져옴
+                file = request.FILES['file']
                 
-                # 분리된 파일들이 저장되는 폴더 경로
-                spleeter_output_path = os.path.join(fs.location, os.path.splitext(file.name)[0])
-                # 배경음악은 삭제
-                file_path = os.path.join(spleeter_output_path, 'accompaniment.wav')
-                if os.path.isfile(file_path):
-                    os.remove(file_path)
-                    print("불필요한 파일 삭제 완료")
-                else:
-                    print("해당 파일이 존재하지 않습니다.")
+                fs = FileSystemStorage()
 
-                number_of_people = request.session.get('number_of_people', '2')
+                # 이름 기반으로 파일 저장 (name.wav 형식)
+                filename = f"{name}.wav"
+                file_path = fs.save(filename, file)
 
-                if number_of_people == '1':
-                    # 화자 분리를 생략하고 바로 보이스 클론 페이지로 리디렉션
-                    vocal_path = os.path.join(spleeter_output_path, 'vocals.wav')
-                    speaker_path = os.path.join(spleeter_output_path, 'speaker_SPEAKER_00.wav')
-                    os.rename(vocal_path, speaker_path)
-                    request.session['speaker_file'] = speaker_path
-                    return redirect('query_view')
-                else:
-                    # pyannote.audio 파이프라인 로드
-                    diarization_pipeline = Pipeline.from_pretrained(
-                        "pyannote/speaker-diarization-3.1",
-                        use_auth_token="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"
+                full_file_path = fs.path(file_path)  # 실제 파일 경로 가져오기
+
+                # pyannote.audio 파이프라인 로드
+                diarization_pipeline = Pipeline.from_pretrained(
+                    "pyannote/speaker-diarization-3.1",
+                    use_auth_token="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"
+                )
+
+                # 오디오 파일을 pyannote.audio로 처리
+                audio_data, sample_rate = sf.read(full_file_path)
+                diarization = diarization_pipeline({'audio': full_file_path})
+
+                speakers_audio = {}
+                speaker_files = []  # 추가: 각 화자의 파일명을 저장할 리스트
+
+                # 화자별로 음성 데이터를 분리합니다.
+                for turn, _, speaker in diarization.itertracks(yield_label=True):
+                    start_sample = int(turn.start * sample_rate)
+                    end_sample = int(turn.end * sample_rate)
+                    speaker_audio = audio_data[start_sample:end_sample]
+
+                    if speaker in speakers_audio:
+                        speakers_audio[speaker].append(speaker_audio)
+                    else:
+                        speakers_audio[speaker] = [speaker_audio]
+
+                # 화자별로 오디오 파일을 저장합니다.
+                for speaker, audio in speakers_audio.items():
+                    speaker_audio = np.concatenate(audio, axis=0)
+                    speaker_output_path = os.path.join(
+                        fs.location, f'{name}_speaker_{speaker}.wav'  # 이름 기반 파일명으로 저장
                     )
+                    sf.write(speaker_output_path, speaker_audio, sample_rate)
 
-                    # 분리된 트랙들에 대한 화자 분할 실행
-                    for track in os.listdir(spleeter_output_path):
-                        track_path = os.path.join(spleeter_output_path, track)
-                        # 오디오 파일을 불러옵니다.
-                        audio_data, sample_rate = sf.read(track_path)
-                        # 화자 분할을 실행합니다.
-                        diarization = diarization_pipeline({'audio': track_path})
+                    # 파일 크기 확인
+                    logging.info(f"파일 {speaker_output_path} 크기: {os.path.getsize(speaker_output_path)} 바이트")
 
-                        speakers_audio = {}
-                        # 화자별로 음성 데이터를 분리합니다.
-                        for turn, _, speaker in diarization.itertracks(yield_label=True):
-                            start_sample = int(turn.start * sample_rate)
-                            end_sample = int(turn.end * sample_rate)
-                            speaker_audio = audio_data[start_sample:end_sample]
-                            # 화자별로 음성 데이터를 저장합니다.
-                            if speaker in speakers_audio:
-                                speakers_audio[speaker].append(speaker_audio)
-                            else:
-                                speakers_audio[speaker] = [speaker_audio]
+                    # 각 화자의 파일 경로를 리스트에 추가
+                    speaker_files.append(f'{name}_speaker_{speaker}.wav')
 
-                        # 화자별로 오디오 파일을 저장합니다.
-                        for speaker, audio in speakers_audio.items():
-                            # 모든 발화를 하나의 오디오 트랙으로 연결합니다.
-                            speaker_audio = np.concatenate(audio, axis=0)
-                            # 오디오 파일로 저장합니다.
-                            speaker_output_path = os.path.join(spleeter_output_path, f'speaker_{speaker}.wav')
-                            sf.write(speaker_output_path, speaker_audio, sample_rate)
+                # 세션에 화자 수와 파일명 저장
+                request.session['number_of_speakers'] = len(speakers_audio)
+                request.session['speaker_files'] = speaker_files  # 추가: 파일명 리스트를 세션에 저장
+                
+                # 화자 선택 페이지로 리디렉션
+                return redirect('select_speaker')
 
-                            # 파일 크기 확인
-                            print(f"파일 {speaker_output_path} 크기: {os.path.getsize(speaker_output_path)} 바이트")
-
-            except subprocess.CalledProcessError as e:
-                # 오류 메시지를 컨텍스트에 추가합니다.
-                context['error_message'] = e.stderr
-                print(f"분리 실패: {e.stderr}")
+            except Exception as e:
+                # 오류 발생 시 로그 출력 및 오류 메시지 컨텍스트에 추가
+                logging.error(f"화자 분리 실패: {str(e)}")
+                context['error_message'] = str(e)
 
             # 처리 후 form 초기화
             context['form'] = UploadForm()
-            return redirect('select_speaker')  # 음성 파일 선택 페이지로 리디렉션
 
     return render(request, 'upload.html', context)
 
 def select_speaker(request):
-    speakers = [
-        {'id': 0, 'file': f"{settings.MEDIA_URL}interview/speaker_SPEAKER_00.wav"},
-        {'id': 1, 'file': f"{settings.MEDIA_URL}interview/speaker_SPEAKER_01.wav"},
-        {'id': 2, 'file': f"{settings.MEDIA_URL}interview/speaker_SPEAKER_02.wav"}
-    ]
-
-    for speaker in speakers:
-        file_path = os.path.join(settings.MEDIA_ROOT, 'interview', f'speaker_SPEAKER_0{speaker["id"]}.wav')
-        if os.path.exists(file_path):
-            print(f"파일 {file_path} 존재함")
-            print(f"파일 {file_path} 크기: {os.path.getsize(file_path)} 바이트")
-        else:
-            print(f"파일 {file_path} 존재하지 않음")
+    # 세션에서 화자 수 및 화자 파일명 리스트 가져오기
+    number_of_speakers = request.session.get('number_of_speakers', 0)
+    speaker_files = request.session.get('speaker_files', [])  # 세션에서 파일명 리스트 가져오기
+    
+    speakers = []
+    for i in range(number_of_speakers):
+        # 저장된 파일 경로를 세션에서 불러와 사용
+        speakers.append({
+            'id': i,
+            'file': f"{settings.MEDIA_URL}{speaker_files[i]}"  # 세션에서 저장한 파일명 사용
+        })
 
     if request.method == 'POST':
         selected_speaker = request.POST.get('selected_speaker')
@@ -143,9 +126,10 @@ def select_speaker(request):
 
     return render(request, 'select_speaker.html', {'speakers': speakers})
 
+
 # ElevenLabs 클라이언트 초기화
 client = ElevenLabs(api_key=elevenlabs_api_key)
-
+ 
 def get_completion(prompt, past_messages):
     response = openai.ChatCompletion.create(
         model="gpt-4",

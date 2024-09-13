@@ -1,6 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Make CH1</title>
   <style>
     .photo-container {
@@ -40,7 +42,7 @@
     }
 
     #photo-input {
-      cursor: pointer;  
+      cursor: pointer;
     }
 
     .input-container {
@@ -48,17 +50,20 @@
       justify-content: center;
       margin-top: 20px;
     }
+
     .input-box {
       background-color: #AED5FC;
       padding: 10px;
       border-radius: 5px;
       margin-right: 10px;
     }
+
     .upload-container {
       display: flex;
       justify-content: center;
       margin-top: 20px;
     }
+
     .upload-box {
       background-color: #AED5FC;
       padding: 10px;
@@ -66,9 +71,10 @@
       display: flex;
       align-items: center;
     }
+
     .start-button {
       display: block;
-      margin: 20px auto 0;
+      margin: 20px auto;
       background-color: #0381F9;
       color: white;
       padding: 10px 20px;
@@ -79,67 +85,46 @@
   </style>
 </head>
 <body>
+
+  <!-- 폼 시작 -->
+  <form id="file-form" method="POST" enctype="multipart/form-data" action="{% url 'voice_separation' %}">
+    {% csrf_token %}
+
+    <!-- 사진 업로드 미리보기 -->
     <div class="photo-container">
-        <div class="photo-preview-container">
-          <img id="photo-preview" src="#" alt="Photo" style="display: none;">
-        </div>
-        <div class="photo-input-container">
-          <label for="photo-input" class="photo-input-label">사진 선택</label>
-          <input type="file" id="photo-input" accept="image/*" onchange="showPhoto(this)">
-        </div>
+      <div class="photo-preview-container">
+        <img id="photo-preview" src="#" alt="Photo" style="display: none;">
+      </div>
+      <div class="photo-input-container">
+        <label for="photo-input" class="photo-input-label">사진 선택</label>
+        <input type="file" id="photo-input" accept="image/*" onchange="showPhoto(this)">
+      </div>
     </div>
            
-      
-      <script>
-        function showPhoto(input) {
-          var photoPreview = document.getElementById('photo-preview');
-          if (input.files && input.files[0]) {
-            photoPreview.src = URL.createObjectURL(input.files[0]);
-            photoPreview.style.display = 'block';
-          } else {
-            photoPreview.src = '#';
-            photoPreview.style.display = 'none';
-          }
+    <!-- 자바스크립트로 사진 미리보기 -->
+    <script>
+      function showPhoto(input) {
+        var photoPreview = document.getElementById('photo-preview');
+        if (input.files && input.files[0]) {
+          photoPreview.src = URL.createObjectURL(input.files[0]);
+          photoPreview.style.display = 'block';
+        } else {
+          photoPreview.src = '#';
+          photoPreview.style.display = 'none';
         }
+      }
     </script>
-      </script>      
-  <div class="input-container">
-    <div class="input-box">이름</div>
-    <input type="text">
-  </div>
-  <div class="upload-container">
-    <div class="upload-box">대화 파일을 업로드 해주세요</div>
-    <input type="file">
-  </div>
-<!--  <div class="upload-container">
-    <div class="upload-box">음성 파일을 업로드 해주세요</div>
-    <input type="file">
-  </div>
--->
-<button class="start-button" onclick="navigateToChat()">Next</button>
-<script>
-  // CSRF 토큰을 가져와서 전역 변수에 저장
-  var csrfToken = document.querySelector('[name="csrfmiddlewaretoken"]').value;
 
-  function navigateToChat() {
-  fetch("{% url 'choose_ch1' %}", {
-    method: "GET",
-    headers: {
-      "X-CSRFToken": "{{ csrf_token }}"
-    }
-  })
-  .then(response => {
-    if (response.ok) {
-      window.location.href = "{% url 'select_number_of_people' %}";
-    } else {
-      // 에러 처리
-    }
-  })
-  .catch(error => {
-    // 에러 처리
-  });
-}
+    <!-- 이름 입력 필드 -->
+    <div class="input-container">
+      <div class="input-box">이름</div>
+      <input type="text" name="name" required>
+    </div>
 
-</script>
+
+    <!-- 제출 버튼 -->
+    <button class="start-button" type="submit">Next</button>
+  </form>
+
 </body>
 </html>
