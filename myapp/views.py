@@ -16,7 +16,7 @@ import base64
 import json 
 from django.views.decorators.http import require_http_methods
 from django.urls import reverse
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 
 logging.basicConfig(level=logging.INFO)
 openai.api_key = 'sk-D22-NEc2cS09LI3f-qiYtTXkHvICwA4eZ9Jpl-eK1wT3BlbkFJaSUR8wTiTQGQG6eAM4A7lu_e3vTuun8sL-Zp6lDUMA'
@@ -122,7 +122,7 @@ def select_speaker(request):
     if request.method == 'POST':
         selected_speaker = request.POST.get('selected_speaker')
         request.session['selected_speaker'] = selected_speaker
-        return redirect('query_view')
+        return HttpResponseRedirect('http://localhost:3000/chat')
 
     return render(request, 'select_speaker.html', {'speakers': speakers})
 
