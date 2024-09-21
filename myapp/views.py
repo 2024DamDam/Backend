@@ -194,13 +194,26 @@ def query_view(request):
             request.session['past_messages'].append({"role": "assistant", "content": answer})
             request.session.modified = True
 
-            return JsonResponse({'response': answer})
+            # text_to_speech 함수 호출하여 음성 데이터를 생성
+            audio_data = text_to_speech(answer)
+            if audio_data is None:
+                return JsonResponse({'error': 'Text-to-Speech conversion failed'}, status=500)
+
+            # 음성 데이터를 base64로 인코딩
+            audio_base64 = base64.b64encode(audio_data).decode('utf-8')
+
+            # JSON 응답에 텍스트와 음성 데이터를 함께 반환
+            return JsonResponse({
+                'response': answer,
+                'audio_base64': audio_base64  # base64 인코딩된 음성 파일
+            })
 
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
 
     # POST 요청이 아닐 경우
     return JsonResponse({'error': 'Invalid request method'}, status=400)
+
 
 
 
