@@ -22,6 +22,17 @@ logging.basicConfig(level=logging.INFO)
 openai.api_key = 'sk-D22-NEc2cS09LI3f-qiYtTXkHvICwA4eZ9Jpl-eK1wT3BlbkFJaSUR8wTiTQGQG6eAM4A7lu_e3vTuun8sL-Zp6lDUMA'
 elevenlabs_api_key = '866f355f0c138130ff9afa77e40041bf'
 
+# 이름과 voice_id를 매핑한 딕셔너리
+VOICE_ID_MAP = {
+    "루피": "hCdxXHupEl1eNlHtAqso",
+    "박보검": "2i6zFKAngKbQIGrWFRln",
+    "공효진": "ZQPqB61olap4bPtGGHFp",
+    "박영호 교수님": "Qw16So0iRAMat85fRh2F",
+    "임유진 교수님": "d4jieP6FUjGrK40LvHbm",
+    "황정민": "xFOh2Yi1fJndlCAOVXsE",
+    "이청아": "joLgZXc94fcRJftAz3yT"
+}
+
 def select_number_of_people(request):
     if request.method == 'POST':
         form = NumberOfPeopleForm(request.POST)
@@ -107,24 +118,79 @@ def voice_separation(request):
     return render(request, 'upload.html', context)
 
 def select_speaker(request):
-    # 세션에서 화자 수 및 화자 파일명 리스트 가져오기
     number_of_speakers = request.session.get('number_of_speakers', 0)
-    speaker_files = request.session.get('speaker_files', [])  # 세션에서 파일명 리스트 가져오기
+    speaker_files = request.session.get('speaker_files', [])
     
-    speakers = []
-    for i in range(number_of_speakers):
-        # 저장된 파일 경로를 세션에서 불러와 사용
-        speakers.append({
-            'id': i,
-            'file': f"{settings.MEDIA_URL}{speaker_files[i]}"  # 세션에서 저장한 파일명 사용
-        })
+    speakers = [{'id': i, 'file': f"{settings.MEDIA_URL}{speaker_files[i]}"} for i in range(number_of_speakers)]
 
     if request.method == 'POST':
         selected_speaker = request.POST.get('selected_speaker')
-        request.session['selected_speaker'] = selected_speaker
-        return HttpResponseRedirect('http://localhost:3000/chat')
+
+        if selected_speaker is None or not selected_speaker.isdigit() or int(selected_speaker) >= len(speaker_files):
+            logging.error("선택한 화자의 파일이 유효하지 않습니다.")
+            return render(request, 'select_speaker.html', {'speakers': speakers, 'error_message': '유효하지 않은 화자를 선택했습니다.'})
+
+        speaker_file = speaker_files[int(selected_speaker)]
+        speaker_file_path = os.path.join(settings.MEDIA_ROOT, speaker_file)
+
+        if not os.path.exists(speaker_file_path):
+            logging.error(f"파일이 존재하지 않음: {speaker_file_path}")
+            return render(request, 'select_speaker.html', {'speakers': speakers, 'error_message': '선택한 화자의 음성 파일을 찾을 수 없습니다.'})
+
+        try:
+            # 음성 클로닝 요청: 음성 파일 경로를 전달
+            voice = client.clone(
+                name="박보검",
+                description="박보검 목소리로 생성된 음성입니다.",
+                files=[speaker_file_path]  # 선택된 화자의 음성 파일 경로를 전달
+            )
+
+            # voice 객체의 voice_id 속성에 접근
+            voice_id = voice.voice_id
+
+            # 클로닝된 음성으로 텍스트 음성 변환
+            text = "안녕하세요! 박보검입니다."
+            response = client.text_to_speech.convert(
+                voice_id=voice_id,  # 클론된 voice_id 사용
+                text=text,
+                output_format="mp3_22050_32",
+                model_id="eleven_multilingual_v2",
+                voice_settings=VoiceSettings(
+                    stability=0.5, similarity_boost=0.8, style=0.0, use_speaker_boost=True
+                )
+            )
+            cloned_audio_data = b"".join(chunk for chunk in response)
+
+            if cloned_audio_data is None:
+                raise ValueError("음성 복제 실패: NoneType 반환")
+
+            audio_base64 = base64.b64encode(cloned_audio_data).decode('utf-8')
+
+            return render(request, 'confirm_voice.html', {
+                'audio_base64': audio_base64,
+                'text': text
+            })
+
+        except Exception as e:
+            logging.error(f"음성 클로닝 실패: {str(e)}")
+            return render(request, 'select_speaker.html', {
+                'speakers': speakers,
+                'error_message': '음성 클로닝 중 오류가 발생했습니다.'
+            })
 
     return render(request, 'select_speaker.html', {'speakers': speakers})
+
+
+
+
+# 음성 확인 페이지
+@csrf_exempt
+def confirm_voice(request):
+    if request.method == 'POST':
+        if 'confirm' in request.POST and request.POST['confirm'] == 'yes':
+            return HttpResponseRedirect('http://localhost:3000/chat')
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
+
 
 
 # ElevenLabs 클라이언트 초기화
@@ -139,16 +205,6 @@ def get_completion(prompt, past_messages):
     answer = response['choices'][0]['message']['content']
     return answer
 
-# 이름과 voice_id를 매핑한 딕셔너리
-VOICE_ID_MAP = {
-    "루피": "hCdxXHupEl1eNlHtAqso",
-    "박보검": "2i6zFKAngKbQIGrWFRln",
-    "공효진": "ZQPqB61olap4bPtGGHFp",
-    "박영호 교수님": "Qw16So0iRAMat85fRh2F",
-    "임유진 교수님": "d4jieP6FUjGrK40LvHbm",
-    "황정민": "xFOh2Yi1fJndlCAOVXsE",
-    "이청아": "joLgZXc94fcRJftAz3yT"
-}
 
 def text_to_speech(text: str, name: str) -> bytes:
     try:

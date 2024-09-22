@@ -13,6 +13,7 @@ urlpatterns = [
     path('select_number_of_people/', views.select_number_of_people, name='select_number_of_people'),
     path('query_view/', views.query_view, name='query_view'),
     path('voice_separation/', views.voice_separation, name='voice_separation'),
+    path('confirm_voice/', views.confirm_voice, name='confirm_voice'),
     path('select_speaker/', views.select_speaker, name='select_speaker'),
     path('api/summarize/', views.summarize_text, name='summarize_text'),
 ]

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>음성 확인</title>
+</head>
+<body>
+    <h2>복제된 음성을 확인하세요:</h2>
+    <audio controls>
+        <source src="data:audio/mp3;base64,{{ audio_base64 }}" type="audio/mp3">
+        Your browser does not support the audio element.
+    </audio>
+    <p>이 음성이 맞습니까?</p>
+    <form method="post" action="{% url 'confirm_voice' %}">
+        {% csrf_token %}
+        <button type="submit" name="confirm" value="yes">네</button>
+    </form>
+</body>
+</html>
