@@ -139,10 +139,29 @@ def get_completion(prompt, past_messages):
     answer = response['choices'][0]['message']['content']
     return answer
 
-def text_to_speech(text: str) -> bytes:
+# 이름과 voice_id를 매핑한 딕셔너리
+VOICE_ID_MAP = {
+    "루피": "hCdxXHupEl1eNlHtAqso",
+    "박보검": "2i6zFKAngKbQIGrWFRln",
+    "공효진": "ZQPqB61olap4bPtGGHFp",
+    "박영호 교수님": "Qw16So0iRAMat85fRh2F",
+    "임유진 교수님": "d4jieP6FUjGrK40LvHbm",
+    "황정민": "xFOh2Yi1fJndlCAOVXsE",
+    "이청아": "joLgZXc94fcRJftAz3yT"
+}
+
+def text_to_speech(text: str, name: str) -> bytes:
     try:
+        # 이름에 맞는 voice_id 가져오기
+        voice_id = VOICE_ID_MAP.get(name)
+        
+        if not voice_id:
+            logging.error(f"Invalid name: {name}")
+            return None
+        
+        # text_to_speech 요청
         response = client.text_to_speech.convert(
-            voice_id="HIfeW6Vd8E8LZ3HAkZk8",
+            voice_id=voice_id,  # 선택된 voice_id 사용
             optimize_streaming_latency="0",
             output_format="mp3_22050_32",
             text=text,
@@ -156,6 +175,7 @@ def text_to_speech(text: str) -> bytes:
     except Exception as e:
         logging.error(f"Error: {str(e)}")
         return None
+
 
 def handle_uploaded_file(f):
     content = f.read().decode('utf-8')
