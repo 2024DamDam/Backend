@@ -13,6 +13,7 @@
     <form method="post" action="{% url 'confirm_voice' %}">
         {% csrf_token %}
         <button type="submit" name="confirm" value="yes">네</button>
+        <button type="button" onclick="window.location.href='http://127.0.0.1:8000/select_number_of_people/'">아니오</button>
     </form>
 </body>
 </html>

@@ -149,3 +149,15 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_WHITELIST = [
     'http://localhost:3000',  # React 개발 서버 도메인 추가
 ]
+
+
+# 세션 저장 방법 (기본적으로 데이터베이스를 사용)
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # 데이터베이스 세션 사용
+
+# 세션 쿠키 설정
+SESSION_COOKIE_SECURE = False  # HTTPS가 아니어도 세션 쿠키를 허용 (개발 중일 때)
+SESSION_COOKIE_HTTPONLY = True  # 자바스크립트에서 세션 쿠키에 접근 불가
+SESSION_SAVE_EVERY_REQUEST = True  # 매 요청마다 세션을 저장 (선택 사항)
+
+# 세션 만료 시간 (선택 사항)
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # 브라우저가 닫혀도 세션 유지

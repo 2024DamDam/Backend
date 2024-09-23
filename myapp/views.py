@@ -149,7 +149,7 @@ def select_speaker(request):
             voice_id = voice.voice_id
 
             # 클로닝된 음성으로 텍스트 음성 변환
-            text = "안녕하세요! 박보검입니다."
+            text = "안녕하세요! 만나서 반가워요."
             response = client.text_to_speech.convert(
                 voice_id=voice_id,  # 클론된 voice_id 사용
                 text=text,
@@ -181,8 +181,6 @@ def select_speaker(request):
     return render(request, 'select_speaker.html', {'speakers': speakers})
 
 
-
-
 # 음성 확인 페이지
 @csrf_exempt
 def confirm_voice(request):
@@ -190,7 +188,6 @@ def confirm_voice(request):
         if 'confirm' in request.POST and request.POST['confirm'] == 'yes':
             return HttpResponseRedirect('http://localhost:3000/chat')
     return JsonResponse({'error': 'Invalid request method'}, status=400)
-
 
 
 # ElevenLabs 클라이언트 초기화
@@ -206,18 +203,16 @@ def get_completion(prompt, past_messages):
     return answer
 
 
-def text_to_speech(text: str, name: str) -> bytes:
+def handle_uploaded_file(f):
+    content = f.read().decode('utf-8')
+    return content
+
+# 텍스트 음성 변환 함수
+def text_to_speech(text: str, voice_id: str) -> bytes:
     try:
-        # 이름에 맞는 voice_id 가져오기
-        voice_id = VOICE_ID_MAP.get(name)
-        
-        if not voice_id:
-            logging.error(f"Invalid name: {name}")
-            return None
-        
-        # text_to_speech 요청
+        # voice_id를 사용하여 음성 변환 요청
         response = client.text_to_speech.convert(
-            voice_id=voice_id,  # 선택된 voice_id 사용
+            voice_id=voice_id,  # voice_id 사용
             optimize_streaming_latency="0",
             output_format="mp3_22050_32",
             text=text,
@@ -228,69 +223,51 @@ def text_to_speech(text: str, name: str) -> bytes:
         )
         audio_data = b"".join(chunk for chunk in response)
         return audio_data
+
     except Exception as e:
         logging.error(f"Error: {str(e)}")
         return None
 
 
-def handle_uploaded_file(f):
-    content = f.read().decode('utf-8')
-    return content
-
+# JSON API로 텍스트 기반 요청 처리
+# JSON API로 텍스트 기반 요청 처리
 @csrf_exempt
 def query_view(request):
     if request.method == 'POST':
         try:
-            # JSON 데이터 파싱
             body_unicode = request.body.decode('utf-8')
             body_data = json.loads(body_unicode)
+            voice_id = body_data.get('voice_id')  # 프론트엔드에서 전달된 voice_id
+            prompt = body_data.get('prompt', '')  # 프롬프트 내용
 
-            prompt = body_data.get('prompt', '')
+            if not voice_id:
+                logging.error("No voice_id provided in request")
+                return JsonResponse({'error': 'No voice_id provided'}, status=400)
 
-            if not prompt:
-                return JsonResponse({'error': 'No prompt provided'}, status=400)
+            logging.info(f"Received prompt: {prompt}, using voice ID: {voice_id}")
 
-            # 초기화 세션 확인
-            if 'past_messages' not in request.session:
-                request.session['past_messages'] = []
-
-            # 사용자의 질문을 추가
-            request.session['past_messages'].append({"role": "user", "content": prompt})
-
-            # ChatGPT API 호출
+            # ChatGPT API 호출 또는 다른 로직 수행
             response = openai.ChatCompletion.create(
                 model="gpt-4",
-                messages=request.session['past_messages'],
+                messages=[{"role": "user", "content": prompt}],
                 max_tokens=1024
             )
-
             answer = response['choices'][0]['message']['content']
 
-            # 응답을 저장
-            request.session['past_messages'].append({"role": "assistant", "content": answer})
-            request.session.modified = True
-
-            # text_to_speech 함수 호출하여 음성 데이터를 생성
-            audio_data = text_to_speech(answer)
+            # 텍스트 음성 변환 (voice_id를 사용)
+            audio_data = text_to_speech(answer, voice_id=voice_id)
             if audio_data is None:
                 return JsonResponse({'error': 'Text-to-Speech conversion failed'}, status=500)
 
-            # 음성 데이터를 base64로 인코딩
+            # 음성 데이터를 base64로 인코딩하여 응답
             audio_base64 = base64.b64encode(audio_data).decode('utf-8')
 
-            # JSON 응답에 텍스트와 음성 데이터를 함께 반환
-            return JsonResponse({
-                'response': answer,
-                'audio_base64': audio_base64  # base64 인코딩된 음성 파일
-            })
+            return JsonResponse({'response': answer, 'audio_base64': audio_base64})
 
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
 
-    # POST 요청이 아닐 경우
     return JsonResponse({'error': 'Invalid request method'}, status=400)
-
-
 
 
 @require_http_methods(["POST"])
@@ -314,6 +291,45 @@ def summarize_text(request):
     summarized_text = response.choices[0].text.strip()
 
     return JsonResponse({'original': data, 'summary': summarized_text})
+
+@csrf_exempt
+def character_choice_view(request):
+    if request.method == 'POST':
+        try:
+            body_unicode = request.body.decode('utf-8')
+            body_data = json.loads(body_unicode)
+            character_name = body_data.get('name')
+            
+            logging.info(f"Received character name: {character_name}")
+
+            if not character_name:
+                return JsonResponse({'error': 'No character name provided'}, status=400)
+
+            voice_id = get_voice_id_by_character(character_name)
+
+            if voice_id is None:
+                return JsonResponse({'error': 'Invalid character name'}, status=400)
+
+            return JsonResponse({'message': f'Voice ID for {character_name} is {voice_id}'})
+
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+
+def get_voice_id_by_character(character_name):
+    # 캐릭터 이름에 따른 보이스 아이디 매핑 로직
+    character_voice_map = {
+        "루피": "hCdxXHupEl1eNlHtAqso",
+    "박보검": "2i6zFKAngKbQIGrWFRln",
+    "공효진": "ZQPqB61olap4bPtGGHFp",
+    "박영호 교수님": "Qw16So0iRAMat85fRh2F",
+    "임유진 교수님": "d4jieP6FUjGrK40LvHbm",
+    "황정민": "xFOh2Yi1fJndlCAOVXsE",
+    "이청아": "joLgZXc94fcRJftAz3yT"
+    }
+    return character_voice_map.get(character_name)
 
 def home(request):
     return render(request, 'home.html')
