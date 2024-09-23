@@ -322,7 +322,7 @@ def get_voice_id_by_character(character_name):
     # 캐릭터 이름에 따른 보이스 아이디 매핑 로직
     character_voice_map = {
         "루피": "hCdxXHupEl1eNlHtAqso",
-    "박보검": "2i6zFKAngKbQIGrWFRln",
+    "박보검": "6G2q0bCZZiM3WmPMHNXM",
     "공효진": "ZQPqB61olap4bPtGGHFp",
     "박영호 교수님": "Qw16So0iRAMat85fRh2F",
     "임유진 교수님": "d4jieP6FUjGrK40LvHbm",
