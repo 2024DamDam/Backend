@@ -44,6 +44,20 @@ def select_number_of_people(request):
         form = NumberOfPeopleForm()
     return render(request, 'select_number_of_people.html', {'form': form})
 
+
+def get_next_filename(directory, extension='wav'):
+    """
+    media 디렉토리 내에서 기존 파일들 중 가장 높은 번호를 찾아 다음 번호를 반환하는 함수
+    """
+    existing_files = os.listdir(directory)
+    # 기존 파일명 중 숫자만 추출하여 정렬
+    file_numbers = [int(f.split('.')[0]) for f in existing_files if f.split('.')[0].isdigit()]
+    if file_numbers:
+        next_number = max(file_numbers) + 1
+    else:
+        next_number = 1
+    return f"{next_number}.{extension}"
+
 def voice_separation(request):
     context = {'form': UploadForm()}  # 초기 컨텍스트 설정
 
@@ -51,13 +65,14 @@ def voice_separation(request):
         form = UploadForm(request.POST, request.FILES)
         if form.is_valid():
             try:
-                name = request.POST.get('name')  # 입력된 이름을 가져옴
                 file = request.FILES['file']
                 
                 fs = FileSystemStorage()
 
-                # 이름 기반으로 파일 저장 (name.wav 형식)
-                filename = f"{name}.wav"
+                # media 폴더에서 가장 큰 숫자를 찾아 다음 파일명 설정
+                filename = get_next_filename(fs.location)
+
+                # 파일을 저장
                 file_path = fs.save(filename, file)
 
                 full_file_path = fs.path(file_path)  # 실제 파일 경로 가져오기
@@ -73,7 +88,7 @@ def voice_separation(request):
                 diarization = diarization_pipeline({'audio': full_file_path})
 
                 speakers_audio = {}
-                speaker_files = []  # 추가: 각 화자의 파일명을 저장할 리스트
+                speaker_files = []  # 각 화자의 파일명을 저장할 리스트
 
                 # 화자별로 음성 데이터를 분리합니다.
                 for turn, _, speaker in diarization.itertracks(yield_label=True):
@@ -90,7 +105,7 @@ def voice_separation(request):
                 for speaker, audio in speakers_audio.items():
                     speaker_audio = np.concatenate(audio, axis=0)
                     speaker_output_path = os.path.join(
-                        fs.location, f'{name}_speaker_{speaker}.wav'  # 이름 기반 파일명으로 저장
+                        fs.location, f'{filename.split(".")[0]}_speaker_{speaker}.wav'
                     )
                     sf.write(speaker_output_path, speaker_audio, sample_rate)
 
@@ -98,11 +113,11 @@ def voice_separation(request):
                     logging.info(f"파일 {speaker_output_path} 크기: {os.path.getsize(speaker_output_path)} 바이트")
 
                     # 각 화자의 파일 경로를 리스트에 추가
-                    speaker_files.append(f'{name}_speaker_{speaker}.wav')
+                    speaker_files.append(f'{filename.split(".")[0]}_speaker_{speaker}.wav')
 
                 # 세션에 화자 수와 파일명 저장
                 request.session['number_of_speakers'] = len(speakers_audio)
-                request.session['speaker_files'] = speaker_files  # 추가: 파일명 리스트를 세션에 저장
+                request.session['speaker_files'] = speaker_files
                 
                 # 화자 선택 페이지로 리디렉션
                 return redirect('select_speaker')
@@ -116,6 +131,7 @@ def voice_separation(request):
             context['form'] = UploadForm()
 
     return render(request, 'upload.html', context)
+
 
 def select_speaker(request):
     number_of_speakers = request.session.get('number_of_speakers', 0)
@@ -140,7 +156,7 @@ def select_speaker(request):
         try:
             # 음성 클로닝 요청: 음성 파일 경로를 전달
             voice = client.clone(
-                name="박보검",
+                name="박보검",  # 여기에 voice 클로닝 대상 이름을 넣습니다.
                 description="박보검 목소리로 생성된 음성입니다.",
                 files=[speaker_file_path]  # 선택된 화자의 음성 파일 경로를 전달
             )
@@ -148,27 +164,18 @@ def select_speaker(request):
             # voice 객체의 voice_id 속성에 접근
             voice_id = voice.voice_id
 
-            # 클로닝된 음성으로 텍스트 음성 변환
-            text = "안녕하세요! 만나서 반가워요."
-            response = client.text_to_speech.convert(
-                voice_id=voice_id,  # 클론된 voice_id 사용
-                text=text,
-                output_format="mp3_22050_32",
-                model_id="eleven_multilingual_v2",
-                voice_settings=VoiceSettings(
-                    stability=0.5, similarity_boost=0.8, style=0.0, use_speaker_boost=True
-                )
-            )
-            cloned_audio_data = b"".join(chunk for chunk in response)
+            # 세션에 voice_id 저장 (다음 단계에서 사용)
+            request.session['voice_id'] = voice_id
 
-            if cloned_audio_data is None:
-                raise ValueError("음성 복제 실패: NoneType 반환")
-
-            audio_base64 = base64.b64encode(cloned_audio_data).decode('utf-8')
-
+            # 음성 확인 페이지로 이동
             return render(request, 'confirm_voice.html', {
-                'audio_base64': audio_base64,
-                'text': text
+                'audio_base64': base64.b64encode(b''.join(chunk for chunk in client.text_to_speech.convert(
+                    voice_id=voice_id,
+                    text="안녕하세요! 만나서 반가워요.",
+                    output_format="mp3_22050_32",
+                    model_id="eleven_multilingual_v2",
+                    voice_settings=VoiceSettings(stability=0.5, similarity_boost=0.8, style=0.0, use_speaker_boost=True)
+                ))).decode('utf-8')
             })
 
         except Exception as e:
@@ -181,13 +188,30 @@ def select_speaker(request):
     return render(request, 'select_speaker.html', {'speakers': speakers})
 
 
-# 음성 확인 페이지
+
 @csrf_exempt
 def confirm_voice(request):
     if request.method == 'POST':
         if 'confirm' in request.POST and request.POST['confirm'] == 'yes':
-            return HttpResponseRedirect('http://localhost:3000/chat')
+            voice_id = request.session.get('voice_id')
+            if voice_id:
+                # voice_id를 URL 파라미터로 전달하면서 chat1.js로 이동
+                return HttpResponseRedirect(f'http://localhost:3000/chat1?voice_id={voice_id}')
+            else:
+                return JsonResponse({'error': 'No voice_id found in session'}, status=400)
     return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+
+
+def chat(request):
+    # 세션에서 voice_id 가져오기
+    voice_id = request.session.get('voice_id')
+
+    if not voice_id:
+        return HttpResponse("음성 아이디가 없습니다.", status=400)
+
+    return render(request, 'chat.html', {'voice_id': voice_id})
+
 
 
 # ElevenLabs 클라이언트 초기화

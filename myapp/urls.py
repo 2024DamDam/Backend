@@ -16,7 +16,6 @@ urlpatterns = [
     path('confirm_voice/', views.confirm_voice, name='confirm_voice'),
     path('select_speaker/', views.select_speaker, name='select_speaker'),
     path('api/summarize/', views.summarize_text, name='summarize_text'),
-    path('api/character/', views.character_choice_view, name='character_choice'),
 ]
 
 if settings.DEBUG:
