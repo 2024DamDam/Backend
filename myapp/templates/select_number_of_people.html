@@ -1,14 +1,25 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
+    <meta charset="UTF-8">
     <title>인원 수 선택</title>
+    <!-- CSS 파일 로드 -->
+    {% load static %} <!-- static 태그를 사용하기 위해 추가 -->
+    <link rel="stylesheet" href="{% static 'myapp/css/navbar.css' %}">
+    <link rel="stylesheet" href="{% static 'myapp/css/select_number_of_people.css' %}">
 </head>
 <body>
-    <h1>사람 인원 수를 선택하시오</h1>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">다음</button>
-    </form>
+    <!-- 네비게이션 바 인클루드 -->
+    {% include 'myapp/navbar.html' %}
+
+    <!-- 메인 컨텐츠 -->
+    <div class="container">
+        <h1>사람 인원 수를 선택하시오</h1>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">다음</button>
+        </form>
+    </div>
 </body>
 </html>

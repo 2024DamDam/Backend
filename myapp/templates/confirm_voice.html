@@ -1,19 +1,30 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
+    <meta charset="UTF-8">
     <title>음성 확인</title>
+    <!-- CSS 파일 로드 -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'myapp/css/navbar.css' %}">
+    <link rel="stylesheet" href="{% static 'myapp/css/confirm_voice.css' %}"> <!-- confirm_voice.css 추가 -->
 </head>
 <body>
-    <h2>복제된 음성을 확인하세요:</h2>
-    <audio controls>
-        <source src="data:audio/mp3;base64,{{ audio_base64 }}" type="audio/mp3">
-        Your browser does not support the audio element.
-    </audio>
-    <p>이 음성이 맞습니까?</p>
-    <form method="post" action="{% url 'confirm_voice' %}">
-        {% csrf_token %}
-        <button type="submit" name="confirm" value="yes">네</button>
-        <button type="button" onclick="window.location.href='http://127.0.0.1:8000/select_number_of_people/'">아니오</button>
-    </form>
+    <!-- 네비게이션 바 인클루드 -->
+    {% include 'myapp/navbar.html' %}
+
+    <!-- 메인 컨텐츠 -->
+    <div class="container">
+        <h2>복제된 음성을 확인하세요:</h2>
+        <audio controls>
+            <source src="data:audio/mp3;base64,{{ audio_base64 }}" type="audio/mp3">
+            Your browser does not support the audio element.
+        </audio>
+        <p>이 음성이 맞습니까?</p>
+        <form method="post" action="{% url 'confirm_voice' %}">
+            {% csrf_token %}
+            <button type="submit" name="confirm" value="yes" class="confirm-btn">네</button>
+            <button type="button" class="cancel-btn" onclick="window.location.href='http://127.0.0.1:8000/select_number_of_people/'">아니오</button>
+        </form>
+    </div>
 </body>
 </html>

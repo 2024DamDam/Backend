@@ -1,0 +1,57 @@
+/* 기본적인 스타일 */
+body {
+    margin: 0;
+    font-family: 'Arial', sans-serif;
+    background-color: #ffffff;
+    padding-top: 100px; /* 네비게이션 바 높이만큼 패딩 */
+}
+
+.container {
+    padding: 20px;
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+h2 {
+    font-size: 1.8rem;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+audio {
+    width: 100%;
+    max-width: 400px;
+    margin: 20px auto;
+}
+
+/* 확인 및 취소 버튼 스타일 */
+.confirm-btn, .cancel-btn {
+    padding: 12px 20px;
+    background-color: #5172ca;
+    color: white;
+    border: none;
+    border-radius: 25px;
+    font-size: 16px;
+    cursor: pointer;
+    margin: 10px;
+    transition: background-color 0.3s;
+}
+
+.confirm-btn:hover {
+    background-color: #3a59a1;
+}
+
+.cancel-btn {
+    background-color: #d9534f;
+}
+
+.cancel-btn:hover {
+    background-color: #c9302c;
+}
+
+p {
+    font-size: 1.2rem;
+    color: #666;
+    margin-top: 20px;
+}

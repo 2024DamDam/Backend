@@ -1,0 +1,56 @@
+/* 기본적인 스타일 */
+body {
+    margin: 0;
+    font-family: 'Arial', sans-serif;
+    background-color: #ffffff;
+    padding-top: 100px; /* 네비게이션 바 높이만큼 패딩 */
+}
+
+.container {
+    padding: 20px;
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+h1 {
+    font-size: 2rem;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+/* 화자 선택 스타일 */
+.speaker-selection {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* 중앙 정렬 */
+    margin-bottom: 10px;
+    gap: 15px; /* 버튼, 텍스트, 오디오 간 간격을 적당히 배치 */
+}
+
+.speaker-selection label {
+    font-size: 1.2rem;
+    color: #333;
+}
+
+/* 오디오 플레이어 간격 및 스타일 */
+audio {
+    width: 300px; /* 오디오 플레이어 폭을 늘려서 조정하기 쉽게 설정 */
+    margin-left: 15px;
+}
+
+/* 버튼 스타일 */
+button {
+    padding: 12px 20px;
+    background-color: #5172ca;
+    color: white;
+    border: none;
+    border-radius: 25px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #3a59a1;
+}
